@@ -22,8 +22,8 @@ import java.util.Map;
  * 秒杀商品表 服务实现类
  * </p>
  *
- * @author zhyp
- * @since 2023-08-10
+ * @author cheney
+ * @since 2023-08-17
  */
 @Service
 public class SeckillGoodsServiceImpl extends ServiceImpl<SeckillGoodsMapper, SeckillGoods> implements ISeckillGoodsService {
