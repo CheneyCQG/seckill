@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cheney.seckill.mapper.SeckillGoodsMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.cheney.seckill.pojo.SeckillGoods">
+        <id column="id" property="id" />
+        <result column="goods_id" property="goodsId" />
+        <result column="seckill_price" property="seckillPrice" />
+        <result column="stock_count" property="stockCount" />
+        <result column="start_date" property="startDate" />
+        <result column="end_date" property="endDate" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, goods_id, seckill_price, stock_count, start_date, end_date
+    </sql>
+    <resultMap id="goodsVoMap" type="com.cheney.seckill.vo.SeckillGoodsVo">
+        <id column="id" property="id" />
+        <result column="seckill_price" property="seckillPrice" />
+        <result column="stock_count" property="stockCount" />
+        <result column="start_date" property="startDate" />
+        <result column="end_date" property="endDate" />
+        <result column="goods_name" property="goodsName" />
+        <result column="goods_title" property="goodsTitle" />
+        <result column="goods_img" property="goodsImg" />
+        <result column="goods_detail" property="goodsDetail" />
+        <result column="goods_price" property="goodsPrice" />
+        <result column="goods_stock" property="goodsStock" />
+    </resultMap>
+    <select id="getListInfo" resultMap="goodsVoMap">
+        SELECT
+            t1.id,
+            t1.seckill_price,
+            t1.stock_count,
+            t1.start_date,
+            t1.end_date,
+            t2.goods_detail,
+            t2.goods_img,
+            t2.goods_name,
+            t2.goods_price,
+            t2.goods_stock,
+            t2.goods_title
+        FROM
+            t_seckill_goods t1 LEFT JOIN
+            t_goods t2
+        ON
+            t1.goods_id = t2.id
+
+    </select>
+    <select id="findGoodsVoById" resultMap="goodsVoMap">
+        SELECT
+            t1.id,
+            t1.seckill_price,
+            t1.stock_count,
+            t1.start_date,
+            t1.end_date,
+            t2.goods_detail,
+            t2.goods_img,
+            t2.goods_name,
+            t2.goods_price,
+            t2.goods_stock,
+            t2.goods_title
+        FROM
+            t_seckill_goods t1 JOIN
+            t_goods t2
+            ON
+                t1.goods_id = t2.id
+            WHERE
+                t1.id = #{id}
+    </select>
+
+
+</mapper>

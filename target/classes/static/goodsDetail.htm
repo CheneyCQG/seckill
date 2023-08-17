@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>商品详情</title>
+    <!-- jquery -->
+    <script type="text/javascript"  src="/js/jquery.min.js"></script>
+    <!-- bootstrap -->
+    <link rel="stylesheet" type="text/css"  href="/bootstrap/css/bootstrap.min.css"/>
+    <script type="text/javascript"  src="/bootstrap/js/bootstrap.min.js"></script>
+    <!-- layer -->
+    <script type="text/javascript"  src="/layer/layer.js"></script>
+    <!-- common.js -->
+    <script type="text/javascript"  src="/js/common.js"></script>
+</head>
+<body>
+<div class="panel panel-default">
+    <div class="panel-heading">秒杀商品详情</div>
+    <div class="panel-body">
+        <span  id="loginornot"> 您还没有登录，请登陆后再操作<br/></span>
+        <span>没有收货地址的提示。。。</span>
+    </div>
+    <table class="table" id="goods">
+        <tr>
+            <td>商品名称</td>
+            <td colspan="3"  id="goodsName"></td>
+        </tr>
+        <tr>
+            <td>商品图片</td>
+            <td colspan="3"><img  id="goodsImg" width="200" height="200"/></td>
+        </tr>
+        <tr>
+            <td>秒杀开始时间</td>
+            <td  id="startTime"></td>
+            <td id="seckillTip">
+                <input type="hidden" id="remainSeconds" >
+                <span  id="noStart">秒杀倒计时: <span id="countDown"></span>秒
+                </span>
+<!--                <span  id="starting">秒杀进行中</span>-->
+<!--                <span  id="ending">秒杀已结束</span>-->
+            </td>
+            <td>
+                    <div >
+
+                        <img id="codes"  width="130" height="48" onclick="refreshcode()">
+                        <input type="text" id="code" />
+<!--                    <button class="btn btn-primary btn-block" type="button" id="buyButton" onclick="doSeckill()">立即秒杀</button>-->
+                        <button class="btn btn-primary " type="button" id="buyButton" onclick="getRealPath()">立即秒杀</button>
+                    </div>
+            </td>
+        </tr>
+        <tr>
+            <td>商品原价</td>
+            <td colspan="3"  id="goodsPrice"></td>
+        </tr>
+        <tr>
+            <td>秒杀价</td>
+            <td colspan="3"  id="goodsSeckillPrice" ></td>
+        </tr>
+        <tr>
+            <td>库存数量</td>
+            <td colspan="3"  id="goodsStockCount"></td>
+        </tr>
+    </table>
+</div>
+</body>
+<script>
+
+    $(function (){
+        refreshcode();
+        $.ajax({
+            url: "/goods/detail/"+g_getQueryString("goodsId"),
+            type: "GET",
+            success:function (resp){
+                if (resp.code == 200){
+                    console.log(resp.data);
+                    render(resp.data);
+                }else {
+                    layer.msg(resp.msg)
+                }
+            },
+            error:function (e){
+                layer.msg(e)
+            }
+        })
+    })
+    function refreshcode(){
+        $("#codes").attr("src","/seckill/code?id="+g_getQueryString("goodsId")+"&time="+new Date())
+    }
+    function render(detailVo){
+        var user = detailVo.user;
+        var goods = detailVo.goodsVo;
+        var secKillStatus = detailVo.secKillStatus;
+        var remainSeconds = detailVo.remainSeconds;
+        if (user != null) {
+            $("#loginornot").attr("hidden",true)
+        }
+        $("#goodsName").text(goods.goodsName);
+        $("#goodsImg").attr("src", goods.goodsImg);
+        $("#startTime").text(new Date(goods.startDate).format("yyyy-MM-dd HH:mm:ss"));
+        $("#remainSeconds").val(remainSeconds);
+        $("#goodsPrice").text(goods.goodsPrice);
+        $("#goodsSeckillPrice").text(goods.seckillPrice);
+        $("#goodsStockCount").text(goods.stockCount);
+        $("#countDown").text(remainSeconds);
+        countDown();
+    }
+    function countDown(){
+        //获取倒计时
+        let remainSeconds = $("#remainSeconds").val();
+        if (remainSeconds > 0){
+            $("#buyButton").attr("disabled",true);
+            //秒杀未开始，需要倒计时
+            setTimeout(function (){
+                //将remainSeconds-1
+                $("#remainSeconds").val(remainSeconds - 1);
+                $("#countDown").text(remainSeconds - 1);
+                countDown();
+            },1000)
+        }else if (remainSeconds == 0){
+            $("#buyButton").attr("disabled",false);
+
+            //秒杀进行中
+            $("#seckillTip").text("秒杀进行中")
+        }else {
+            $("#buyButton").attr("disabled",true);
+
+            $("#seckillTip").text("秒杀已结束")
+        }
+    }
+
+    function doSeckill(path){
+        $.ajax({
+            url: "/seckill/"+path+"/doSeckill?id="+g_getQueryString("goodsId"),
+            type: "GET",
+            success:function (resp){
+                if (resp.code == 200){
+                    // 正在秒杀
+                    if (resp.data == 0){
+                        //等待结果
+                        g_showLoading();
+                        getOrderResult();
+                    }
+                    // location.href = "orderDetail.htm?orderId="+resp.data.id;
+                }else {
+                    layer.msg(resp.msg)
+                }
+            },
+            error:function (e){
+                layer.msg(e)
+            }
+        })
+    }
+    function getOrderResult(){
+
+        $.ajax({
+            url: "/seckill/findOrder/"+g_getQueryString("goodsId"),
+            type: "GET",
+            success:function (resp){
+                if (resp.code == 200){
+                    if (resp.data == 0){
+                        //正在秒杀
+                        setTimeout("getOrderResult()",500)
+                        // getOrderResult();
+                    }else if (resp.data != 0){
+                        //跳转到订单页
+                        layer.confirm(
+                            "下单成功是否去查看订单",
+                            {btn:["确认","取消"]},
+                            function (){
+                                location.href = "orderDetail.htm?orderId="+resp.data;
+                            },
+                            function (){
+                                layer.close();
+                            }
+                        );
+
+                    }
+                }
+            },
+            error:function (e){
+                layer.msg(e)
+            }
+        })
+    }
+    function getRealPath(){
+        var code = $("#code").val();
+        $.ajax({
+            url: "/seckill/getRealPath?id="+g_getQueryString("goodsId")+"&code="+code,
+            type: "GET",
+            success: function (resp){
+                if (resp.code == 200){
+                    var path = resp.data;
+                    alert(path);
+                    doSeckill(path);
+                }else {
+                    layer.msg(resp.msg)
+                }
+            },
+            error: function (e){
+                layer.msg(e)
+            }
+        })
+    }
+
+
+</script>
+</html>
