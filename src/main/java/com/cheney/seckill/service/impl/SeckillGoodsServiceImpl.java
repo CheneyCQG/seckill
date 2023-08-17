@@ -41,6 +41,7 @@ public class SeckillGoodsServiceImpl extends ServiceImpl<SeckillGoodsMapper, Sec
 //        Map<Long ,SeckillGoodsVo> seckillGoodsVos = new HashMap<>();
 //        List<SeckillGoodsVo> seckillGoodsVos1 = new ArrayList<>();
 //
+        //
 //        List<SeckillGoods> seckillGoods = seckillGoodsMapper.selectList(null);
 //        List<Long> gIdList = new ArrayList<>();
 //        for (SeckillGoods seckillGood : seckillGoods) {
